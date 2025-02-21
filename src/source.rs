@@ -16,7 +16,7 @@ use crate::path::deserialize_path;
 pub struct BlobAssetReader;
 
 impl BlobAssetReader {
-    async fn fetch_bytes<'a>(&self, path: PathBuf) -> Result<Box<Reader<'a>>, AssetReaderError> {
+    async fn fetch_bytes<'a>(&self, path: PathBuf) -> Result<Box<dyn Reader>, AssetReaderError> {
         let window = web_sys::window().unwrap();
 
         let resp_value = JsFuture::from(window.fetch_with_str(path.to_str().unwrap()))
@@ -31,7 +31,7 @@ impl BlobAssetReader {
             200 => {
                 let data = JsFuture::from(resp.array_buffer().unwrap()).await.unwrap();
                 let bytes = Uint8Array::new(&data).to_vec();
-                let reader: Box<Reader> = Box::new(VecReader::new(bytes));
+                let reader: Box<dyn Reader> = Box::new(VecReader::new(bytes));
                 Ok(reader)
             }
             404 => Err(AssetReaderError::NotFound(path)),
@@ -47,7 +47,7 @@ impl AssetReader for BlobAssetReader {
     fn read<'a>(
         &'a self,
         path: &'a Path,
-    ) -> BoxedFuture<'a, Result<Box<Reader<'a>>, AssetReaderError>> {
+    ) -> BoxedFuture<'a, Result<Box<dyn Reader>, AssetReaderError>> {
         Box::pin(async move {
             let path = deserialize_path(path);
             self.fetch_bytes(path).await
@@ -56,7 +56,7 @@ impl AssetReader for BlobAssetReader {
     fn read_meta<'a>(
         &'a self,
         path: &'a Path,
-    ) -> BoxedFuture<'a, Result<Box<Reader<'a>>, AssetReaderError>> {
+    ) -> BoxedFuture<'a, Result<Box<dyn Reader>, AssetReaderError>> {
         Box::pin(async move {
             let path = deserialize_path(path);
             self.fetch_bytes(path).await
