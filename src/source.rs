@@ -47,7 +47,7 @@ impl AssetReader for BlobAssetReader {
     fn read<'a>(
         &'a self,
         path: &'a Path,
-    ) -> BoxedFuture<'a, Result<Box<Reader<'a>>, AssetReaderError>> {
+    ) -> BoxedFuture<'a, Result<Box<dyn Reader<'a>>, AssetReaderError>> {
         Box::pin(async move {
             let path = deserialize_path(path);
             self.fetch_bytes(path).await
@@ -56,7 +56,7 @@ impl AssetReader for BlobAssetReader {
     fn read_meta<'a>(
         &'a self,
         path: &'a Path,
-    ) -> BoxedFuture<'a, Result<Box<Reader<'a>>, AssetReaderError>> {
+    ) -> BoxedFuture<'a, Result<Box<dyn Reader<'a>>, AssetReaderError>> {
         Box::pin(async move {
             let path = deserialize_path(path);
             self.fetch_bytes(path).await
